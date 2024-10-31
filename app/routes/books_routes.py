@@ -19,7 +19,16 @@ def create_book():
 
 @books_bp.get("/", strict_slashes=False)
 def get_all_books():
+    title_params = request.args.get("title")
+    description_params = request.args.get("description")
+
     query = db.select(Book).order_by(Book.id)
+
+    if title_params:
+        query = query.where(Book.title.ilike(f"%{title_params}%"))
+    if description_params:
+        query = query.where(Book.description.ilike(f"%{description_params}%"))
+
     books = db.session.scalars(query)
     return [book.to_dict()for book in books]
 
@@ -28,6 +37,14 @@ def get_all_books():
 def get_one_book(book_id):
     book = validate_book(book_id)
     return book.to_dict()
+
+@books_bp.delete("/<book_id>", strict_slashes=False)
+def delete_a_book(book_id):
+    book = validate_book(book_id)
+    db.session.delete(book)
+    db.session.commit()
+
+    return Response(status=204, mimetype="application/json")
 
 def validate_book(book_id):
     try:
@@ -39,10 +56,10 @@ def validate_book(book_id):
     query = db.select(Book).where(Book.id == book_id)
     book = db.session.scalar(query)
 
-    if book:
-        return book
+    if not book:
+        abort(make_response({ "message": f"Book with ID {book_id} not found"}, 404))
 
-    abort(make_response({ "message": f"Book with ID {book_id} not found"}, 404))
+    return book
 
 @books_bp.put("/<book_id>", strict_slashes=False)
 def edit_a_book(book_id):
