@@ -7,15 +7,27 @@ books_bp = Blueprint("books_bp", __name__, url_prefix="/books")
 @books_bp.post("/", strict_slashes=False)
 def create_book():
     request_body = request.get_json()
-    title = request_body["title"]
-    description = request_body["description"]
-
-    new_book = Book(title=title, description=description)
+    new_book = instantiate_book(request_body)
     db.session.add(new_book)
     db.session.commit()
 
     response = new_book.to_dict()
     return response, 201
+
+def instantiate_book(request_body):
+    print(request_body, bool(request_body))
+
+    try:
+        title = request_body["title"]
+        description = request_body["description"]
+        new_book = Book(title=title, description=description)
+        return new_book
+    except KeyError as mismatch:
+        if not request_body:
+            message = {"message": "ERROR: No parameters for book has been passed!"}
+        else:
+            message = {"message": f"ERROR: Missing the {mismatch.args[0]} parameters for creating a book"}
+        abort(make_response(message, 400))
 
 @books_bp.get("/", strict_slashes=False)
 def get_all_books():
