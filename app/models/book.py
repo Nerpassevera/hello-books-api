@@ -6,10 +6,17 @@ class Book(db.Model):
     title: Mapped[str]
     description: Mapped[str]
 
-
     def to_dict(self):
         return {
             "id": self.id,
             "title": self.title,
             "description": self.description
         }
+
+    @classmethod
+    def from_dict(cls, book_data):
+        book = Book(
+            title = book_data["title"],
+            description = book_data["description"]
+        )
+        return book

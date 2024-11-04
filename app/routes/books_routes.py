@@ -18,9 +18,7 @@ def instantiate_book(request_body):
     print(request_body, bool(request_body))
 
     try:
-        title = request_body["title"]
-        description = request_body["description"]
-        new_book = Book(title=title, description=description)
+        new_book = Book.from_dict(request_body)
         return new_book
     except KeyError as mismatch:
         if not request_body:
