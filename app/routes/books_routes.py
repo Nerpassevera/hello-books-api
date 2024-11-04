@@ -24,7 +24,9 @@ def instantiate_book(request_body):
         if not request_body:
             message = {"message": "ERROR: No parameters for book has been passed!"}
         else:
-            message = {"message": f"ERROR: Missing the {mismatch.args[0]} parameters for creating a book"}
+            message = {
+                "message": f"ERROR: Missing the {mismatch.args[0]} parameters for creating a book"
+                }
         abort(make_response(message, 400))
 
 @books_bp.get("/", strict_slashes=False)

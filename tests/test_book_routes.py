@@ -9,6 +9,58 @@ def test_get_all_books_no_records(client):
     assert response.status_code == 200
     assert response_body == []
 
+def test_get_all_books_returns_list_of_books(client, two_saved_books):
+    # Arrange
+    book1 = {
+        "id": 1,
+        "title":"Ocean Book",
+        "description": "watr 4ever"
+    }
+    book2 = {
+        "id": 2,
+        "title":"Mountain Book",
+        "description": "i luv 2 climb rocs"
+    }
+
+    # Act
+    response = client.get("/books")
+    response_body = response.get_json()
+
+    # Assert
+    assert response.status_code == 200
+    assert isinstance(response_body, list)
+    assert all(isinstance(book, dict) for book in response_body)
+    assert book1 in response_body
+    assert book2 in response_body
+
+def test_get_all_books_returns_filtered_books(client, two_saved_books):
+    # Arrange
+    filter_query = {"title": "ocean"}
+    book1 = {
+        "id": 1,
+        "title":"Ocean Book",
+        "description": "watr 4ever"
+    }
+
+    # Act
+    response = client.get("/books", query_string = filter_query)
+    response_body = response.get_json()
+
+    # Assert
+    assert response.status_code == 200
+    assert isinstance(response_body, list)
+    assert all(isinstance(book, dict) for book in response_body)
+    assert book1 in response_body
+
+def test_get_one_book_missing_record(client, two_saved_books):
+    # Act
+    response = client.get("/books/3")
+    response_body = response.get_json()
+
+    # Assert
+    assert response.status_code == 404
+    assert response_body == {"message": "Book with ID 3 not found"}
+
 def test_get_one_book(client, two_saved_books):
     # Act
     response = client.get("/books/1")
@@ -21,6 +73,15 @@ def test_get_one_book(client, two_saved_books):
         "title": "Ocean Book",
         "description": "watr 4ever"
     }
+
+def test_get_one_book_invalid_id(client, two_saved_books):
+    # Act
+    response = client.get("/books/cat")
+    response_body = response.get_json()
+
+    # Assert
+    assert response.status_code == 400
+    assert response_body == {"message": "book id cat is invalid"}
 
 def test_create_one_book(client):
     # Act
